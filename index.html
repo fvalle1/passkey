@@ -1,19 +1,29 @@
 <html>
+    
+    <head>
+        
+    </head>
+    
+    <script>
+    function _arrayBufferToBase64(buffer) {
+        var binary = '';
+        var bytes = new Uint8Array(buffer);
+        var len = bytes.byteLength;
+        for (var i = 0; i < len; i++) {
+            binary += String.fromCharCode(bytes[i]);
+        }
+        return window.btoa(binary);
+    }
+    user_id = new Uint8Array([123]);
 
-<head>
-
-</head>
-
-<input>
-<script>
     const publicKeyCredentialCreationOptions = {
-        challenge: new Uint8Array([031442]),
+        challenge: new Uint8Array([3,1,4,1,5,9,2,42]),
         rp: {
             name: "Elemento",
             id: "localhost",
         },
         user: {
-            id: new Uint8Array([123]),
+            id: user_id,
             name: "admin",
             displayName: "Admin",
         },
@@ -49,15 +59,6 @@
         });
     }
 
-    function _arrayBufferToBase64(buffer) {
-        var binary = '';
-        var bytes = new Uint8Array(buffer);
-        var len = bytes.byteLength;
-        for (var i = 0; i < len; i++) {
-            binary += String.fromCharCode(bytes[i]);
-        }
-        return window.btoa(binary);
-    }
 
     function send(url, params) {
         fetch(url, {
@@ -69,6 +70,7 @@
             body: JSON.stringify(params)
         })
             .then(response => response.json())
+            .then(response => document.getElementById("response").innerText=JSON.stringify(response))
             .then(response => console.log(JSON.stringify(response)))
     }
 
@@ -78,6 +80,7 @@
         }).then(credential => {
             send('http://localhost:7712/register/',
                 {
+                    "user_id": user_id,
                     "id": credential.id,
                     "rawId": _arrayBufferToBase64(credential.rawId),
                     "response": {
@@ -93,10 +96,12 @@
 
     const publicKeyCredentialRequestOptions = {
         // Server generated challenge
-        challenge: new Uint8Array([031442]),
+        challenge: new Uint8Array([3, 1, 4, 1, 5, 9, 2, 42]),
         // The same RP ID as used during registration
         rpId: 'localhost',
     };
+
+    function authenticate(){
     navigator.credentials.get({
         publicKey: publicKeyCredentialRequestOptions,
         signal: abortController.signal,
@@ -106,6 +111,7 @@
         console.log(credential);
         send('http://localhost:7712/auth/',
             {
+                "user_id": user_id,
                 "id": credential.id,
                 "rawId": _arrayBufferToBase64(credential.rawId),
                 "authenticatorAttachment": credential.authenticatorAttachment,
@@ -119,14 +125,18 @@
             });
     }
     );
+}
 
 
 </script>
-Elemento Passkey test
+<div style="width: 50%;margin:auto;">
+<h1>Passkey test</h1>
 
 <button onclick="create()">Register</button><br>
+<button onclick="authenticate()">Auth</button><br>
 <input type="text" name="username" autocomplete="username webauthn" />
-
+<p id="response"></p>
+</div>
 </body>
 
 </html>
