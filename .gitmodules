@@ -1,0 +1,3 @@
+[submodule "py_webauthn"]
+	path = py_webauthn
+	url = git@github.com:duo-labs/py_webauthn.git
